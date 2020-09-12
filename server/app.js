@@ -98,9 +98,20 @@ app.post('/signup', (req, res, next) => {
   // var username = ;
   return models.Users.get({ username })
     .then(user => {
-
+      if (user) {
+        throw user;
+      }
+      return models.Users.create({username, password});
+    })
+    .then(() => {
+      res.redirect('/');
+    })
+    .error(error => {
+      res.status(500).send(error);
+    })
+    .catch(user => {
+      res.redirect('/signup');
     });
-  res.send();
 });
 
 
@@ -110,13 +121,9 @@ app.post('/login', (req, res, next) => {
 
   return models.Users.get({ username })
     .then(user => {
-
       if (!user || !models.Users.compare(password, user.password, user.salt)) {
-        // user doesn't exist or the password doesn't match
-        throw new Error('Username and password do not match');
+        throw err;
       }
-
-      return models.Sessions.update({ hash: req.session.hash }, { userId: user.id });
     })
     .then(() => {
       res.redirect('/');
@@ -127,6 +134,8 @@ app.post('/login', (req, res, next) => {
     .catch(() => {
       res.redirect('/login');
     });
+
+
 });
 
 /************************************************************/
